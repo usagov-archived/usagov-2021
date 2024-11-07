@@ -11,8 +11,10 @@ dependencies:
     - field.field.node.basic_page.field_benefits_callout_ref
     - field.field.node.basic_page.field_benefits_category
     - field.field.node.basic_page.field_benefits_life_events_descr
+    - field.field.node.basic_page.field_benefits_life_events_id
     - field.field.node.basic_page.field_benefits_life_events_title
     - field.field.node.basic_page.field_benefits_search_descr
+    - field.field.node.basic_page.field_benefits_search_id
     - field.field.node.basic_page.field_benefits_search_title
     - field.field.node.basic_page.field_css_icon
     - field.field.node.basic_page.field_custom_twig_content
@@ -84,8 +86,10 @@ third_party_settings:
       children:
         - field_benefits_life_events_title
         - field_benefits_life_events_descr
+        - field_benefits_life_events_id
         - field_benefits_search_title
         - field_benefits_search_descr
+        - field_benefits_search_id
       label: 'Benefits Search Page'
       region: content
       parent_name: ''
@@ -165,7 +169,26 @@ content:
     region: content
     settings:
       placeholder: ''
-    third_party_settings: {  }
+    third_party_settings:
+      conditional_fields:
+        57036002-dda5-4980-9704-719cb0ab3a40:
+          entity_type: node
+          bundle: basic_page
+          dependee: field_page_type
+          settings:
+            state: '!visible'
+            reset: false
+            condition: value
+            grouping: AND
+            values_set: 1
+            value: ''
+            values: {  }
+            value_form:
+              -
+                target_id: '10'
+            effect: show
+            effect_options: {  }
+            selector: ''
   field_benefits_callout_button:
     type: string_textfield
     weight: 46
@@ -206,6 +229,14 @@ content:
       rows: 3
       placeholder: ''
     third_party_settings: {  }
+  field_benefits_life_events_id:
+    type: string_textfield
+    weight: 41
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   field_benefits_life_events_title:
     type: string_textfield
     weight: 39
@@ -220,6 +251,14 @@ content:
     region: content
     settings:
       rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+  field_benefits_search_id:
+    type: string_textfield
+    weight: 44
+    region: content
+    settings:
+      size: 60
       placeholder: ''
     third_party_settings: {  }
   field_benefits_search_title:
@@ -347,7 +386,7 @@ content:
             selector: ''
   field_homepage_benefits_button:
     type: string_textfield
-    weight: 38
+    weight: 4
     region: content
     settings:
       size: 60
@@ -355,7 +394,7 @@ content:
     third_party_settings: {  }
   field_homepage_benefits_descr:
     type: text_textarea
-    weight: 36
+    weight: 2
     region: content
     settings:
       rows: 3
@@ -366,7 +405,7 @@ content:
         hide_guidelines: '0'
   field_homepage_benefits_ref:
     type: entity_reference_autocomplete
-    weight: 37
+    weight: 3
     region: content
     settings:
       match_operator: CONTAINS
@@ -376,7 +415,7 @@ content:
     third_party_settings: {  }
   field_homepage_benefits_title:
     type: string_textfield
-    weight: 35
+    weight: 1
     region: content
     settings:
       size: 60

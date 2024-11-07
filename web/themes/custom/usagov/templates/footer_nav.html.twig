@@ -1,5 +1,9 @@
-{% set lang = node.langcode.value %}
-<footer class="{{ footer_classes }}" role="contentinfo">
+{% if node.langcode.value %}
+  {% set lang = node.langcode.value %}
+{% elseif language.id %}
+  {% set lang = language.id %}
+{% endif %}
+<footer class="{{ footer_classes }}">
 	{% if lang == 'es' %}
 		{{ drupal_menu('primary-footer-spanish', expand=true) }}
 	{% else %}

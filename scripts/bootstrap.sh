@@ -31,11 +31,18 @@ APP_NAME=$(echo $VCAP_APPLICATION | jq -r '.name')
 APP_ROOT=$(dirname "$0")
 APP_ID=$(echo "$VCAP_APPLICATION" | jq -r '.application_id')
 
-DB_NAME=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.db_name')
-DB_USER=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.username')
-DB_PW=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.password')
-DB_HOST=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.host')
-DB_PORT=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.port')
+
+AWSRDS=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"]')
+if [ "$AWSRDS" = "null" ]; then
+  echo "WARNING: The aws-rds variable is not set in the VCAP_SERVICES which is only a problem if this is NOT the WWW instance."
+else
+  echo "NOTICE: This bootstrap.sh sees the aws-rds variable is indeed set in the VCAP_SERVICES so this application should be able to connect to RDS/MySQL."
+  DB_NAME=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.db_name')
+  DB_USER=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.username')
+  DB_PW=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.password')
+  DB_HOST=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.host')
+  DB_PORT=$(echo $VCAP_SERVICES | jq -r '.["aws-rds"][] | .credentials.port')
+fi
 
 ADMIN_EMAIL=$(echo $SECRETS | jq -r '.ADMIN_EMAIL')
 
@@ -50,8 +57,8 @@ case $SPACE in
 dev)
   WWW_HOST=beta-dev.usa.gov
   ;;
-dev-dr)
-  WWW_HOST=dev-dr.usa.gov
+dr)
+  WWW_HOST=beta-dr.usa.gov
   ;;
 stage)
   WWW_HOST=beta-stage.usa.gov
@@ -217,6 +224,8 @@ if [ "${CF_INSTANCE_INDEX:-''}" == "0" ] && [ -z "${SKIP_DRUPAL_BOOTSTRAP:-}" ];
     drush updatedb --no-cache-clear -y
     drush cim -y || drush cim -y
     drush cim -y
+    echo "Notice: If a TXNDATA error is seen above this line, we believe it is likley NewRelic having a connection-reset-by-peer issue. We dont believe this is causing drush-cim to crash."
+
     drush php-eval "node_access_rebuild();" -y
 
     if [ x$initial_mm_state = x0 ]; then
@@ -228,6 +237,9 @@ if [ "${CF_INSTANCE_INDEX:-''}" == "0" ] && [ -z "${SKIP_DRUPAL_BOOTSTRAP:-}" ];
 else
     echo "Bootstrap skipping Drupal CIM because: Instance=${CF_INSTANCE_INDEX:-''} Skip=${SKIP_DRUPAL_BOOTSTRAP:-''}"
 fi
+
+echo "Updating SAMLAuth configuration for $SPACE:"
+/var/www/scripts/gsaauth/configset.sh $SPACE
 
 echo "Adding the USPS credentials..."
 if [[ ${USPS_USERID:-"unset"} != "unset" ]] &&

@@ -65,6 +65,20 @@ if [ -f $REPO_ROOT/env.local ]; then
   . $REPO_ROOT/env.local
 fi
 
+function getOrg() {
+  echo $(cf target | grep org: | awk '{ print $2 }')
+}
+
+function getOrgGUID() {
+  ORG=$1
+  echo $(cf org $ORG --guid)
+}
+
+function getSpaceGUID() {
+  space=$1
+  echo $(cf space $space --guid)
+}
+
 function envEmpty() { # list of env vars
   if [ -z "$1" ]; then # if zero length varname
     return 0; # true
@@ -166,6 +180,20 @@ function existsCFService() { # desired service name
       echo "ERROR: CF service '$desiredService' does not exist in the current CF space"
       return 1; #false
   fi
+}
+
+function bindCFService() {
+  appname=${1}
+  service=${2}
+  if existsCFService $service &> /dev/null; then
+    echo "Binding $appname with $service"
+    cf bind-service $appname $service
+    retval=$?
+  else
+    echo "Cannot bind $appname with non-existant service $service"
+    retval=1
+  fi
+  return $retval
 }
 
 function assertSpace() { # desired space

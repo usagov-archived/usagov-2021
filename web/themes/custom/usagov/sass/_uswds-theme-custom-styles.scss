@@ -42,6 +42,8 @@ i.e.
 @forward "sidenav";
 @forward "state-directory";
 @forward "benefit-search";
+@forward "benefits-block";
+@forward "wizard";
 
 .line-height-2 {
   line-height: 2;
@@ -58,18 +60,27 @@ i.e.
   vertical-align: middle;
 }
 
-@media (min-width: 64em) {
+.usa-section {
+  padding-top: .7rem;
+}
+
+@media (max-width: 30em) {
   .usa-section {
-    padding-top: 2rem;
+      padding-top: 2rem;
   }
 }
 
-.usa-sidenav__sublist a:not(.usa-button) {
-  padding-left: 2.3rem;
+@media (min-width: 40em) {
+  .usa-section {
+      padding-bottom: 4rem;
+      padding-top: 3.2rem;
+  }
 }
 
-.usa-sidenav__sublist .usa-sidenav__sublist a:not(.usa-button) {
-  padding-left: 3.6rem;
+@media (min-width: 64em) {
+  .usa-section {
+    padding-top: 1.7rem;
+  }
 }
 
 .usa-alert--no-icon .usa-alert__body {
@@ -148,9 +159,11 @@ a,
 
 a.usa-button.hero-button {
   @include u-text('gray-90');
+
   &:focus {
     display: inline-block;
   }
+
   &:visited {
     @include u-text('gray-90');
   }
@@ -178,6 +191,7 @@ a.usa-button.hero-button {
 .usa-checkbox__input:checked + .usa-checkbox__label::before,
 .usa-radio__input:checked + .usa-radio__label::before {
   @include u-bg('gray-90');
+
   box-shadow: 0 0 0 units($theme-input-select-border-width) color('gray-90'),
     inset 0 0 0 units($theme-input-select-border-width) color('white');
 }
@@ -224,17 +238,8 @@ a {
   font-size: 1.5rem;
 }
 
-.desktop\:grid-col-fill .content-wrapper {
-  // On Navigation Cards pages, display the content in reverse order. So the Nav banner is displayed above the Intro Text.
-  display: flex;
-  flex-direction: column;
-}
-
-// This style is needed to extend the width of nav page intro text
-.desktop\:grid-col-fill .usa-prose > p.usa-intro {
-  max-width: 81ex;
-  margin-left: 1.2ex;
-  margin-right: 1.2ex;
+.usa-prose > p.usa-intro {
+  max-width: none;
 }
 
 @media (max-width: 30em) {
@@ -335,6 +340,7 @@ div #sm-share a {
   width: 32px;
   height: 32px;
   @include u-text('gray-90');
+
   display: block;
 }
 
@@ -382,6 +388,7 @@ input:not([disabled]):focus.usa-user-error {
 
 .currentMenuItem::after {
   @include u-bg('cyan-30v');
+
   border-radius: 0;
   content: "";
   display: block;
@@ -414,6 +421,7 @@ input:not([disabled]):focus.usa-user-error {
 
 .block-wizardenglish div.usa-prose h1 {
   @include u-text('blue-80v');
+
   padding-bottom: 1.5rem;
   margin-top: 0;
   font-size: 2.25rem;
@@ -458,12 +466,14 @@ input:not([disabled]):focus.usa-user-error {
 
 button#prior.usa-button--outline {
   @include u-bg('white');
+
   box-shadow: inset 0 0 0 2px color('black');
 }
 
 button#next.usa-button,
 .block-wizardenglish a.usa-button {
   @include u-bg('cyan-10');
+
   box-shadow: inset 0 0 0 2px color('cyan-50v');
   border: none;
 }
@@ -526,12 +536,14 @@ div[class^="QSIUserDefinedHTML"] {
 
 #pagesurvey-qual-hdr {
   @include u-bg('cyan-10');
+
   font-size: 130%;
   display: block;
   @include u-text('gray-90');
+
   padding: 12px 0 15px;
   margin: 0 auto;
-  max-width: 960px;
+  max-width: 74.25rem;
   height: auto;
   text-align: center;
   @include u-font-family('serif');
@@ -564,9 +576,11 @@ div[class^="QSIUserDefinedHTML"] {
   &>h1, &>h2, &>h3, &>h4 {
     clear: unset;
   }
+
   .usa-alert, .usa-card-group {
     clear: both;
   }
+
   .usa-process-list {
     display: inline-block;
   }
@@ -633,6 +647,7 @@ a,
 
   display: block;
   @include u-text('normal');
+
   margin-top: 0.5rem;
   max-width: units($theme-input-max-width);
 }
@@ -699,6 +714,11 @@ div div.field--name-field-offices-near-you {
   @include u-text('normal');
 }
 
+// Add padding for feedback button
+button#QSIFeedbackButton-btn {
+  padding: 2px !important;
+}
+
 [href]:focus,
 button:not([disabled]):focus,
 input:not([disabled]):focus,
@@ -709,6 +729,7 @@ button#prior.usa-button--outline:focus,
 button#next.usa-button:focus,
 .block-wizardenglish a.usa-button:focus,
 .usa-radio__input:focus + [class*="__label"]::before,
+.usa-checkbox__input:focus + [class*="__label"]::before,
 textarea:not([disabled]):focus,
 .usagov-directory-bottom-nav-group a.nav-letter:focus,
 .usa-breadcrumb__list-item:nth-last-child(2) .usa-breadcrumb__link:focus,
@@ -720,13 +741,18 @@ select:not([disabled]):focus,
   box-shadow: inset 0 0 0 2px color('white');
 }
 
+/* checkboxes don't get box-shadow in all browsers */
+.usa-checkbox__input:focus + .usa-checkbox__label::before {
+  box-shadow: none;
+  border: 2px solid color('white');
+}
+
 .life-events-intro a:focus,
 .usa-hero__callout a:focus,
 .jump a:focus {
   box-shadow: none;
 }
 
-#extended-logo [href]:focus,
 .usa-footer__secondary-link a:focus,
 .usa-hero__callout [href]:focus {
   display: inherit;
@@ -744,19 +770,78 @@ select:not([disabled]):focus,
   outline-offset: 0;
 }
 
+// Common styles between All topics cards and the cards in Primary pages
+.homepage-card,
+.usagov-card {
+  border-radius: 0;
+  border-width: 2px;
+  border-style: solid;
+  box-shadow: 1px 1px 7px #aaa;
+  @include u-border('cyan-50v');
+
+  &:hover {
+    @include u-bg('cyan-10');
+  }
+}
+
 .usagov-button {
   font-size: 1.1rem;
 }
 
+.usa-pagination .usa-current {
+  background-color: color('blue-warm-70v');
+
+  &:hover {
+    background-color: color('blue-warm-70v');
+    border-color: color('blue-warm-70v')
+  }
+
+  &:focus {
+    background-color: color('blue-warm-70v');
+    color: white;
+    outline-width: 2px;
+    outline-offset: -2px;
+  }
+}
+
+.usa-pagination__arrow{
+  text-decoration: underline;
+}
+
+.usa-pagination__button {
+  border: 2px solid #768FB3;
+  color: color('gray-90');
+
+    &:hover{
+      @include u-text('gray-90');
+      background-color:#768FB3;
+      border-color: #768FB3;
+    }
+}
+
+  .usa-pagination__link {
+    text-decoration-color: color('blue-warm-70v');
+    text-decoration: underline;
+
+    &:hover{
+      color: color('blue-warm-70v');
+    }
+
+  }
+
+
 #main-content {
   .usa-accordion__button {
     @include u-bg('gray-5');
+
     &:hover, &[aria-expanded="true"] {
       @include u-bg('gray-20');
     }
   }
+
   .usa-accordion__content .usa-accordion__button {
     @include u-bg('cyan-10');
+
     &:hover, &[aria-expanded="true"] {
       @include u-bg('cyan-20');
     }
@@ -768,9 +853,76 @@ input::-webkit-textfield-decoration-container {
   visibility: hidden;
 }
 
+// hides the recaptcha image for accessibility reasons
+.grecaptcha-badge {
+  visibility: hidden;
+}
+
+// reduces the space above and below the breadcrumb on the downlevel page without a leftnav to look even
+@media screen and (max-width: 30em) {
+  .breadcrumb-nav-spacing {
+    height: 2.5rem;
+  }
+}
+
+@media (min-width: 30.0625em) and (max-width: 40em) {
+  .breadcrumb-nav-spacing {
+    height: 4rem;
+  }
+}
+
+@media (min-width: 40.0625em) and (max-width: 63.93em) {
+  .breadcrumb-nav-spacing {
+    height: 1.2rem;
+  }
+}
+
+@media screen and (min-width: 64em) {
+  .breadcrumb-nav-spacing {
+    height: 2.7rem;
+  }
+}
+
+// reduces the space under the breadcrumb on the downlevel page with a leftnav to look even
+@media (max-width: 30rem) {
+  .breadcrumb-spacing {
+    height: 2.5rem;
+  }
+}
+
+@media (min-width: 30.0625em) and (max-width: 40em) {
+  .breadcrumb-spacing {
+    height: 4rem;
+  }
+}
+
+@media (min-width: 40.0625em) and (max-width: 63.93em) {
+  .breadcrumb-spacing {
+    height: 1.7rem;
+  }
+}
+
+@media screen and (min-width: 64em) {
+  .breadcrumb-spacing {
+    height: 3.7rem;
+  }
+}
+
+// reduces space below the breadcrumb on benefits pages
+#block-usagov-breadcrumbs {
+  height: 4rem;
+}
+
+#block-usagov-breadcrumbs {
+  @media screen and (max-width: 30em) {
+    height: 5rem;
+  }
+}
+
 .benefits-finder-content {
   .usa-prose>p.usa-intro {
     @include u-margin(0);
+
     max-width: 100%;
   }
 }

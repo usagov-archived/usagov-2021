@@ -6,16 +6,16 @@
         <h3 class="usa-alert__heading">Su información contiene errores</h3>
         <ul id="testing">
           <li id="error-street" class="usa-alert__text">
-            <a href="#myStreetAddress"><span>Escriba la dirección</span></a>
+            <a href="#input-street"><span>Escriba la dirección</span></a>
           </li>
           <li  id="error-city" class="usa-alert__text">
-            <a href="#myCity"><span>Escriba el nombre de la ciudad</span></a>
+            <a href="#input-city"><span>Escriba el nombre de la ciudad</span></a>
           </li>
           <li  id="error-state" class="usa-alert__text">
-            <a href="#input-state-label"><span>Escriba el nombre del estado</span></a>
+            <a href="#input-state"><span>Escriba el nombre del estado</span></a>
           </li>
           <li  id="error-zip" class="usa-alert__text">
-            <a href="#myZIP"><span>Escriba el código postal</span></a>
+            <a href="#input-zip"><span>Escriba el código postal</span></a>
           </li>
         </ul>
       </div>
@@ -56,9 +56,10 @@
                   <select
                     aria-describedby="state"
                     class="usa-select"
-                    name="input-state"
+                    name="select-dropdown"
                     id="input-state"
                     required
+                    autocomplete="off"
                     oninvalid="this.setCustomValidity('Fill out the state field.')"
                     oninput="this.setCustomValidity('')">
                     <option id="AL" value="AL">Alabama (AL)</option>
@@ -167,5 +168,5 @@
 </div>
 
 <script src="/themes/custom/usagov/scripts/purify.min.js" defer></script>
-<script src="/themes/custom/usagov/scripts/accessibility.js"></script>
-<script src="/themes/custom/usagov/scripts/usps-credentials.js"></script>
+<script src="/themes/custom/usagov/scripts/ceoSubmission.js" defer></script>
+<script src="/themes/custom/usagov/scripts/usps-credentials.js" defer></script>

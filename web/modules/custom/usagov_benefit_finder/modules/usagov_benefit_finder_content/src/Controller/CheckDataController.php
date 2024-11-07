@@ -2,11 +2,23 @@
 
 namespace Drupal\usagov_benefit_finder_content\Controller;
 
+use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Database\Connection;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
+use Drupal\file\FileRepositoryInterface;
+use Drupal\usagov_benefit_finder\Traits\BenefitFinderTrait;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+
 /**
  * Class CheckDataController
  * @package Drupal\usagov_benefit_finder_content\Controller
  */
-class CheckDataController {
+class CheckDataController extends ControllerBase {
+
+  use BenefitFinderTrait;
 
   /**
    * The entity type manager service.
@@ -44,14 +56,14 @@ class CheckDataController {
   protected $database;
 
   /**
-   * Retrieves the currently active request object.
+   * The request stack.
    *
-   * @var \Symfony\Component\HttpFoundation\Request
+   * @var \Symfony\Component\HttpFoundation\RequestStack
    */
-  protected $request;
+  protected $requestStack;
 
   /**
-   * The JSON data mode.
+   * The benefit finder content mode.
    *
    * @var string
    */
@@ -72,15 +84,49 @@ class CheckDataController {
   protected $expanded;
 
   /**
-   * Constructs a new LifeEventController object.
+   * Constructs a new CheckDataController object.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
+   * @param \Drupal\Core\File\FileSystemInterface $file_system
+   *   The file system service.
+   * @param \Drupal\file\FileRepositoryInterface|null $file_repository
+   *   The file repository.
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
+   *   The file URL generator.
+   * @param \Drupal\Core\Database\Connection $connection
+   *   The database connection.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
+   *   The request stack.
    */
-  public function __construct() {
-    $this->entityTypeManager = \Drupal::service('entity_type.manager');
-    $this->fileSystem = \Drupal::service('file_system');
-    $this->fileRepository = \Drupal::service('file.repository');
-    $this->fileUrlGenerator = \Drupal::service('file_url_generator');
-    $this->database = \Drupal::service('database');
-    $this->request = \Drupal::request();
+  public function __construct(
+    EntityTypeManagerInterface $entity_type_manager,
+    FileSystemInterface $file_system,
+    FileRepositoryInterface $file_repository,
+    FileUrlGeneratorInterface $file_url_generator,
+    Connection $database,
+    RequestStack $request_stack,
+  ) {
+    $this->entityTypeManager = $entity_type_manager;
+    $this->fileSystem = $file_system;
+    $this->fileRepository = $file_repository;
+    $this->fileUrlGenerator = $file_url_generator;
+    $this->database = $database;
+    $this->requestStack = $request_stack;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('entity_type.manager'),
+      $container->get('file_system'),
+      $container->get('file.repository'),
+      $container->get('file_url_generator'),
+      $container->get('database'),
+      $container->get('request_stack'),
+    );
   }
 
   /**
@@ -91,23 +137,23 @@ class CheckDataController {
 
     // Get langcode.
     if (empty($this->langcode)) {
-      $this->langcode = $this->request->get('langcode') ?? "en";
+      $this->langcode = $this->requestStack->getCurrentRequest()->query->get('langcode') ?? "en";
     }
 
     // Get expanded.
     if (empty($this->expanded)) {
-      $this->expanded = $this->request->get('expanded') ?? "false";
+      $this->expanded = $this->requestStack->getCurrentRequest()->query->get('expanded') ?? "false";
     }
 
     $help = <<<EOD
 <h1>Benefit Finder Content Report</h1>
 <pre>
-This report provides information of criteria, benefit, life event form.
+This report provides information of criteria, benefit, and life event form content.
 Query parameter:
 langcode: 1) en: English (default) 2) es: Spanish
 expanded: 1)false: all accordions closed (default)  2) true: all accordions expanded
 
-Example: /bears/content/report?langcode=en&expanded=true
+Example: /benefit-finder/content/report?langcode=en&expanded=true
 Generate report of English with all accordions expanded.
 </pre>
 EOD;
@@ -129,15 +175,19 @@ EOD;
    */
   public function checkCriteria() {
     $nodes = [];
-    $query = \Drupal::entityQuery('node')
-      ->accessCheck(TRUE)
+
+    $query = $this->entityTypeManager->getStorage('node')
+      ->getQuery()
       ->condition('type', 'bears_criteria')
       ->condition('langcode', $this->langcode)
       ->sort('field_b_id', 'ASC')
-      ->range(0, 1000);
+      ->range(0, 1000)
+      ->accessCheck(TRUE);
+
     $nids = $query->execute();
+
     foreach ($nids as $nid) {
-      $node = $this->getNode($nid, $this->mode);
+      $node = $this->getCriteria($nid, $this->mode);
 
       $vs = $node->get('field_b_values')->getValue();
       $values = [];
@@ -195,16 +245,19 @@ EOD;
    */
   public function checkBenefit() {
     $nodes = [];
-    $query = \Drupal::entityQuery('node')
-      ->accessCheck(TRUE)
+
+    $query = $this->entityTypeManager->getStorage('node')
+      ->getQuery()
       ->condition('type', 'bears_benefit')
       ->condition('langcode', $this->langcode)
       ->sort('title', 'ASC')
-      ->range(0, 1000);
+      ->range(0, 1000)
+      ->accessCheck(TRUE);
+
     $nids = $query->execute();
 
     foreach ($nids as $nid) {
-      $node = $this->getNode($nid, $this->mode);
+      $node = $this->getBenefit($nid, $this->mode);
 
       // Build benefit.
       $benefit = [
@@ -216,7 +269,7 @@ EOD;
 
       // Get agency node and build benefit agency.
       $target_id = $node->get('field_b_agency')->target_id;
-      $agency = $this->getAgency($target_id);
+      $agency = $this->getAgency($target_id, $this->mode);
       if ($agency) {
         $benefit["agency"] = [
           "title" => $agency->get('title')->value,
@@ -249,7 +302,7 @@ EOD;
         $benefit_eligibility = [];
 
         $target_id = $eligibility->get('field_b_criteria_key')->target_id;
-        $criteria_node = $this->getCriteria($target_id);
+        $criteria_node = $this->getCriteria($target_id, $this->mode);
         if ($criteria_node) {
           $ckey = $criteria_node->get('field_b_criteria_key')->value;
 
@@ -308,16 +361,19 @@ EOD;
    */
   public function checkLifeEventForm() {
     $nodes = [];
-    $query = \Drupal::entityQuery('node')
-      ->accessCheck(TRUE)
+
+    $query = $this->entityTypeManager->getStorage('node')
+      ->getQuery()
       ->condition('type', 'bears_life_event_form')
       ->condition('langcode', $this->langcode)
       ->sort('field_b_id', 'ASC')
-      ->range(0, 1000);
+      ->range(0, 1000)
+      ->accessCheck(TRUE);
+
     $nids = $query->execute();
 
     foreach ($nids as $nid) {
-      $life_event_form_node = $this->getNode($nid, $this->mode);
+      $life_event_form_node = $this->getLifeEventForm($nid, $this->mode);
 
       // Build life event form.
       $life_event_form = [
@@ -453,7 +509,7 @@ EOD;
 
     // Get criteria node.
     $target_id = $criteria->get('field_b_criteria_key')->target_id;
-    $criteria_node = $this->getCriteria($target_id);
+    $criteria_node = $this->getCriteria($target_id, $this->mode);
 
     // Do not build missing criteria.
     if (empty($criteria_node)) {
@@ -517,77 +573,6 @@ EOD;
     }
 
     return $criteria_fieldset;
-  }
-
-  /**
-   * Gets criteria of given nid.
-   *
-   * @param $nid
-   *   The criteria node ID.
-   * @return \Drupal\node\NodeInterface
-   *   The criteria node.
-   */
-  public function getCriteria($nid) {
-    return $this->getNode($nid, $this->mode);
-  }
-
-  /**
-   * Gets agency of given nid.
-   *
-   * @param $nid
-   *   The agency node ID.
-   * @return \Drupal\node\NodeInterface
-   *   The agency node.
-   */
-  public function getAgency($nid) {
-    return $this->getNode($nid, $this->mode);
-  }
-
-  /**
-   * Gets node of given nid and mode.
-   *
-   * @param $nid
-   *   The node ID.
-   * @param $mode
-   *   The mode.
-   * @return \Drupal\node\NodeInterface
-   *   The node.
-   */
-  public function getNode($nid, $mode) {
-    $vid = 0;
-
-    // Do not use node of moderation state archived.
-    $id = $this->database
-      ->query('SELECT id FROM content_moderation_state_field_data
-                        WHERE moderation_state = :mstate AND content_entity_id = :nid',
-                        [':mstate' => 'archived', ':nid' => $nid])
-      ->fetchField();
-    if ($id) {
-      return NULL;
-    }
-
-    if ($mode == "published") {
-      $vid = $this->database
-        ->query('SELECT MAX(vid) AS vid FROM node_field_revision WHERE status = 1 AND nid = :nid', [':nid' => $nid])
-        ->fetchField();
-    }
-    elseif ($mode == "draft") {
-      $vid = $this->database
-        ->query('SELECT MAX(vid) AS vid FROM node_field_revision WHERE nid = :nid', [':nid' => $nid])
-        ->fetchField();
-    }
-    else {
-      // @todo Unknown
-    }
-
-    if ($vid) {
-      $node = node_revision_load($vid);
-    }
-    else {
-      $node = NULL;
-    }
-
-    return $node;
   }
 
 }

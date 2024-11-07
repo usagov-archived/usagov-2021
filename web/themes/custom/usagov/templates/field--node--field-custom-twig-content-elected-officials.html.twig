@@ -12,16 +12,16 @@
       <h3 class="usa-alert__heading">Your information contains errors</h3>
       <ul id="testing">
         <li id="error-street" class="usa-alert__text">
-          <a href="#myStreetAddress"><span>Fill out the street field</span></a>
+          <a href="#input-street"><span>Fill out the street field</span></a>
         </li>
         <li id="error-city" class="usa-alert__text">
-          <a href="#myCity"><span>Fill out the city field</span></a>
+          <a href="#input-city"><span>Fill out the city field</span></a>
         </li>
         <li id="error-state" class="usa-alert__text">
-          <a href="#input-state-label"><span>Fill out the state field</span></a>
+          <a href="#input-state"><span>Fill out the state field</span></a>
         </li>
         <li id="error-zip" class="usa-alert__text">
-          <a href="#myZIP"><span>Fill out the ZIP code field</span></a>
+          <a href="#input-zip"><span>Fill out the ZIP code field</span></a>
         </li>
       </ul>
     </div>
@@ -40,7 +40,7 @@
           <strong>All fields are required.</strong>
         </p>
         <div id="error-border">
-          <div class="usa-form-spacing">
+          <div>
             <label id="myStreetAddress" class="usa-label" for="input-street">
               Street address
             </label>
@@ -57,7 +57,7 @@
               oninput="this.setCustomValidity('')"
               />
           </div>
-          <div class="usa-form-spacing">
+          <div>
             <label id="myCity" class="usa-label" for="input-city">City</label>
             <span id="city" class="errors"></span>
             <input
@@ -71,7 +71,7 @@
               oninvalid="this.setCustomValidity('Fill out the city field.')"
               oninput="this.setCustomValidity('')" />
           </div>
-          <div class="usa-form-spacing">
+          <div>
             <label id="input-state-label" class="usa-label" for="input-state">
               State
             </label>
@@ -85,8 +85,9 @@
               <select
                 aria-describedby="state"
                 class="usa-select"
-                name="input-state"
+                name="select-dropdown"
                 id="input-state"
+                autocomplete="off"
                 required
                 oninvalid="this.setCustomValidity('Fill out the state field.')"
                 oninput="this.setCustomValidity('')">
@@ -146,7 +147,7 @@
               <span id="state" class="errors"></span>
             </div>
           </div>
-          <div class="usa-form-spacing">
+          <div>
             <label id="myZIP" class="usa-label" for="input-zip">ZIP code</label>
             <span id="zip" class="errors"></span>
             <input
@@ -205,5 +206,5 @@
 </div>
 
 <script src="/themes/custom/usagov/scripts/purify.min.js" defer></script>
-<script src="/themes/custom/usagov/scripts/accessibility.js"></script>
-<script src="/themes/custom/usagov/scripts/usps-credentials.js"></script>
+<script src="/themes/custom/usagov/scripts/ceoSubmission.js" defer></script>
+<script src="/themes/custom/usagov/scripts/usps-credentials.js" defer></script>

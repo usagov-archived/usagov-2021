@@ -112,13 +112,14 @@ class PublishedPagesSubscriber implements EventSubscriberInterface {
         "Toggle URL",
       ];
 
-      // If the nodeID matches a line in the csv array, set the pointer to that element. TODO: this might be fragile.
+      // If the nodeID matches a line in the csv array, set the pointer to that element.
+      // TODO: this might be fragile.
       if (!empty($csv)) {
         $nodeIDElement = array_search("Page ID", $csv[0]);
         $languageElement = array_search("Taxonomy Level 1", $csv[0]);
         foreach ($csv as $key => $line) {
           if ($line[$nodeIDElement] == $decoded["nodeID"]) {
-            if ($line[$languageElement] == $decoded["language"]) {
+            if ($line[$languageElement] == $content_replace[$decoded["language"]]) {
               $pointer = $key;
             }
           }
@@ -132,7 +133,7 @@ class PublishedPagesSubscriber implements EventSubscriberInterface {
 
       $decoded["Page Title"] = $title;
 
-      $toggle_url = $xpath->query('/html/head/link[contains(@rel, "alternate")]/@href')->item(0)->nodeValue;
+      $toggle_url = $xpath->query('/html/head/link[contains(@data-type, "altlang")]/@href')->item(0)->nodeValue;
       $decoded["Toggle URL"] = ($toggle_url) ? $toggle_url : "None";
 
       $hierarchy = 0;
@@ -164,6 +165,25 @@ class PublishedPagesSubscriber implements EventSubscriberInterface {
             unset($decoded[$name]);
           }
         }
+      }
+      // Tome can end up requesting existing URLs with the raw `/node/NID` path
+      // if a redirect to a node is set to the wrong language. It then proceeds
+      // which retrieves the wrong taxonomy info, which we should discard.
+      if (str_starts_with($url, '/node/') || str_starts_with($url, '/es/node/')) {
+        if ($fp != FALSE) {
+          fclose($fp);
+        }
+        return;
+      }
+
+      // If this page is more than 5 levels deep in the taxonomy hierarchy,
+      // Then we may not be able to reconstruct its URL from the taxonomy URL.
+      // We can get reliably get it from the node. We could do this for all
+      // nodes, but that could negatively impact export performance.
+      if ($decoded['Page ID'] && $hierarchy > 5) {
+        $nid = $decoded['Page ID'];
+        $nodeEntity = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
+        $url = $nodeEntity->toUrl()->toString();
       }
 
       $decoded["Friendly URL"] = (empty($url)) ? "/" : $url;
