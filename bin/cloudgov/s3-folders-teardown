@@ -39,9 +39,7 @@ if [ $CONFIRM != "--confirm-bucket-teardown" ]; then
     exit
 fi
 
-$echo touch /tmp/.s3keep
 for folder in $(s3FoldersList); do 
     echo aws s3 rm --only-show-errors --recursive s3://$S3_BUCKET/$folder
     $echo aws s3 rm --only-show-errors --recursive s3://$S3_BUCKET/$folder
 done
-$echo rm /tmp/.s3keep
